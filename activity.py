@@ -26,7 +26,7 @@ class Experiment:
 			else:	
 
 				#Spread activity
-				Act_New= W*self.Act + np.random.standard_normal(self.Act.shape)*par.sigma
+				Act_New= W*self.Act + np.random.standard_normal(self.Act.shape)*(par.sigma**0.5)
 				Act_New[Act_New<0]=0
 				
 				#Apply thresholding
@@ -35,7 +35,7 @@ class Experiment:
 				Act_temp=np.zeros(par.N_e)
 				Act_temp[ActS[:par.N_act]]=Act_New[ActS[:par.N_act]];
 
-				Act_temp /= np.sum(Act_temp) # TO DO: Normalization should depend on the number of active units
+				Act_temp /= np.sum(Act_temp)/par.Act_Norm # TO DO: Normalization should depend on the number of active units
 
 				self.Act=Act_temp
 				self.ActStore[:,t]=self.Act

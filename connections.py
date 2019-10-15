@@ -25,19 +25,20 @@ class Synaptic_Matrix:
         self.W = np.zeros((par.N_e,par.N_e))
 
 
-    def Normalize(self, par):
+    def Normalize(self, par,conn_str):
         # normalize matrix post_synaptic strengths 
         if self.W.size > 0:
             z = abs(self.W).sum(1)
+            z[z==0]=1
             self.W /= z[:,None]
-            self.W *= par.Conn_norm 
+            self.W *= par.Conn_norm*conn_str 
 
     def Add_Spatial_Connections(self, par, MU, conn_str):
         # add spatially dependent connections
         for mm in range(MU.shape[0]):
             for ii in range(MU.shape[1]):
                 C1=MU[mm,ii]
-                for jj in range(ii-1):
+                for jj in range(ii):
                     C2=MU[mm,jj]
 
                     tor_dist=min(abs(ii-jj),par.N_m-abs(ii-jj))
@@ -49,7 +50,7 @@ class Synaptic_Matrix:
 
         self.W += np.random.random(self.W.shape)*par.Conn_sigma            
         np.fill_diagonal(self.W, 0)
-        self.Normalize(par)            
+        self.Normalize(par,conn_str)            
 
     def Compute_Wake_Similarity(self, par, MU):
         # Compute cell firing similarity based on their place field distances
@@ -57,13 +58,13 @@ class Synaptic_Matrix:
         for mm in range(MU.shape[0]):
             for ii in range(MU.shape[1]):
                 C1=MU[mm,ii]
-                for jj in range(ii-1):
+                for jj in range(ii):
                     C2=MU[mm,jj]
 
                     tor_dist=min(abs(ii-jj),par.N_m-abs(ii-jj))
-
-                    self.C[C1,C2] = np.exp(-tor_dist**2/(2*par.Conn_spread**2))
-                    self.C[C2,C1] = self.C[C1,C2]    
+                    
+                    self.C[C1,C2,mm] = np.exp(-tor_dist**2/(2*par.Conn_spread**2))
+                    self.C[C2,C1,mm] = self.C[C1,C2,mm]    
 
     def Add_Baseline_Connections(self, par, conn_str_bet, conn_str_wit):
         self.W += np.ones(self.W.shape)*conn_str_bet
